@@ -1,19 +1,26 @@
 #!/usr/bin/python
 
-import ayo
-
-steps = ayo.Steps()
+from ayo import Steps, Template
+steps = Steps()
 
 @steps.first
-def first_step():
-    proj = input("Name your project: ")
-    return proj
+def trick_step() -> str:
+    return input("What's your name? ")
 
 @steps.then
-def then_do_this(proj):
-    print("Installing...")
-    ayo.Template("discord-bot-app").install(proj, ignores={
-        "venv": ...
-    })
+def sec_step(name: str) -> int:
+    return int(input("How many days since you last take a shower? "))
+
+@steps.then
+def third_step(days: int) -> str:
+    print(f"Interesting, {days} day(s).")
+    return input("I will install something for you! [Yn] ")
+
+@steps.then
+def forth_step(yn: str):
+    if yn.lower() == "y":
+        Template("discord-bot-app").install("app", ignores={
+            "main.py": ...
+        })
 
 steps.start()

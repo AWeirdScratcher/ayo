@@ -7,25 +7,57 @@ TYPES = Optional[Union[str, int, float, bool]]
 console = Console()
 
 class Steps:
-    """Represents steps."""
+    """Represents steps.
+    
+    Args:
+        cache (bool, optional): Whether to cache (remember) data as completions or not, so that even if 
+            `KeyboardInterrupt` occurs, the next time when this script executes, we can get the 
+            previous data, and skip directly to the last step the user is on.
+
+    Example:
+        .. code-block ::
+
+            from ayo import Steps
+            steps = Steps()
+
+            @steps.first
+            def trick_step() -> str:
+                return input("What's your name? ")
+
+            @steps.then
+            def sec_step(name: str) -> int:
+                return int(input("How many days since you last take a shower? "))
+
+            @steps.then
+            def third_step(days: int) -> str:
+                print(f"Interesting, {days} day(s).")
+                return input("I will install something for you! [Yn] ")
+
+            @steps.then
+            def forth_step(yn: str):
+                if yn.lower() == "y":
+                    ... # install something
+
+            steps.start()
+    """
     __slots__ = (
         "current",
         "steps",
         "data",
-        "remember"
+        "cache"
     )
     current: int
     steps: List[Callable]
     data: List[Any]
-    remember: bool
+    cache: bool
 
-    def __init__(self, *, remember: bool = True):
+    def __init__(self, *, cache: bool = True):
         self.current = 0
         self.steps = []
         self.data = []
-        self.remember = remember
+        self.cache = cache
 
-        if remember and os.path.exists("_ayo$cache.py"):
+        if cache and os.path.exists("_ayo$cache.py"):
             cache_module = __import__("_ayo$cache")
             completions = getattr(cache_module, "_completions", [])
             self.data = [
@@ -85,7 +117,7 @@ class Steps:
                 collected_data[index] = _next_data
 
         except KeyboardInterrupt:
-            if self.remember:
+            if self.cache:
                 with open("_ayo$cache.py", "w", encoding="utf-8") as file:
                     file.write("_completions=[" + ", ".join([
                         f"{i!r}" for i in collected_data
