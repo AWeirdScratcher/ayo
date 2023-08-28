@@ -81,7 +81,7 @@ def show_help(target_command: Optional[str] = None) -> int:
                 {
                     "name": "scripts",
                     "help": "Scripts to install. Could be a GitHub repo or directory.",
-                    "example": "@owner/repo, @owner/repo[branch], dir-name, ..."
+                    "example": "@owner/repo, @owner/repo\[branch], dir-name, ..."
                 }
             ],
             "kwargs": [
@@ -112,7 +112,7 @@ def show_help(target_command: Optional[str] = None) -> int:
                 {
                     "name": "scripts",
                     "help": "The scripts to update. Could only be GitHub repos.",
-                    "example": "@owner/repo, @owner/repo[branch], ..."
+                    "example": "@owner/repo, @owner/repo\[branch], ..."
                 }
             ],
             "kwargs": []
@@ -124,7 +124,7 @@ def show_help(target_command: Optional[str] = None) -> int:
                 {
                     "name": "scripts",
                     "help": "The scripts to uninstall. Could only be GitHub repos.",
-                    "example": "@owner/repo, @owner/repo[branch], ..."
+                    "example": "@owner/repo, @owner/repo\[branch], ..."
                 }
             ],
             "kwargs": []
