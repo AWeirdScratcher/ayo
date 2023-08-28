@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 
 from .template import Template
-from .utils import tof
+from .utils import tof, random_fact
 
 
 console = Console()
@@ -60,7 +60,11 @@ def get_options(
     return args, kwargs
 
 def show_help(target_command: Optional[str] = None) -> int:
-    """Shows the help message."""
+    """Shows the help message.
+    
+    Args:
+        target_command (str, optional): The command to show info for. Optional.
+    """
 
     COMMANDS = [
         {
@@ -71,6 +75,7 @@ def show_help(target_command: Optional[str] = None) -> int:
         },
         {
             "name": "install",
+            "aliases": ["i"],
             "help": "Installs and runs a create-app script.",
             "args": [
                 {
@@ -85,7 +90,7 @@ def show_help(target_command: Optional[str] = None) -> int:
                     "help": "Install and not run it?",
                     "example": "@owner/repo --install-only"
                 }
-            ]
+            ],
         },
         {
             "name": "run",
@@ -123,8 +128,33 @@ def show_help(target_command: Optional[str] = None) -> int:
                 }
             ],
             "kwargs": []
+        },
+        {
+            "name": "clean-cache",
+            "help": "Cleans cache files.",
+            "args": [],
+            "kwargs": []
+        },
+        {
+            "name": "new",
+            "aliases": ["init"],
+            "help": "Creates a new ayo script project.",
+            "args": [],
+            "kwargs": []
         }
     ]
+    _available_commands = []
+    for item in COMMANDS:
+        _available_commands.append(item['name'].lower())
+        aliases: Optional[List[str]] = item.get('aliases')
+
+        if aliases:
+            for alias in aliases:
+                _available_commands.append(alias.lower())
+
+    if target_command and target_command.lower() not in _available_commands:
+        console.print(f"[red]help: unknown command {target_command!r}[/red]")
+        return 0
 
     contents = ""
     ind = " " * 2
@@ -134,16 +164,22 @@ def show_help(target_command: Optional[str] = None) -> int:
     for command in COMMANDS:
         name = command['name']
 
-        if target_command and name != target_command:
+        if target_command and name != target_command.lower() \
+        and target_command.lower() not in command.get("aliases", []):
             continue
 
         info = command['help']
         args = command['args']
         kwargs = command['kwargs']
+        aliases = command.get('aliases')
         contents += f"{ind}ayo [blue]{name}[/blue] - {info}\n\n"
 
+        if aliases:
+            _aliases_string = ", ".join(aliases)
+            contents += f"{inner}[yellow]aliases:[/yellow] {_aliases_string}\n"
+
         if args:
-            contents += f"{inner}positional args:\n"
+            contents += f"{inner}positional args:\n\n"
             for arg in args:
                 argName = arg['name']
                 argInfo = arg['help']
@@ -246,7 +282,7 @@ def gh_download_script_from_config(base_url: str, config: dict) -> str:
     ) as progress:
         task = progress.add_task(
             "[blue]Fetching required contents...",
-            total=config.get("with", 0) + 2 # with + bin (main) + config
+            total=len(config.get("with", [])) + 2 # with + bin (main) + config
         )
 
         for file in files:
@@ -273,8 +309,58 @@ def gh_download_script_from_config(base_url: str, config: dict) -> str:
         progress.update(task, advance=1)
     
     console.print(f"\ncollected and created [green]{full_path}[/green]")
+    
+    installed_templates = False
+
+    with console.status(
+        "[blue]collecting templates...[/blue] "
+        "[d white](.ayo-templates/*)[/d white]\n"
+        "  Did you know: " + random_fact()
+    ):
+        r = requests.get(
+            f"https://api.github.com/repos/{'/'.join(repo_name.split('/')[:-1])}/contents/.ayo-templates"
+        )
+
+        if r.status_code != 200:
+            console.print(f"[blue]no templates found[/blue]")
+        
+        else:
+            for item in r.json():
+                if item['type'] != "dir":
+                    continue
+
+                template_path = full_path + ".ayo-templates/"
+                os.mkdir(template_path)
+                os.mkdir(template_path + "/".join(item['path'].split('/')[1:]))
+                gh_download_template_item(template_path, item['url'])
+                installed_templates = True
+
+    if installed_templates:
+        console.print("[green]successfully[/green] installed all templates")
 
     return full_path
+
+def gh_download_template_item(template_path: str, url: str):
+    r = requests.get(url)
+
+    if r.status_code != 200:
+        console.print(f"[red]cannot get a template[/red]")
+        return
+    
+    for item in r.json():
+        if item['type'] == "dir":
+            os.mkdir(template_path + "/".join(item['path'].split('/')[1:]))
+            gh_download_template_item(template_path, item['url'])
+        
+        else:
+            file_r = requests.get(item['download_url'])
+
+            if file_r.status_code != 200:
+                console.print(f"[red]cannot get a template file[/red]")
+
+            with open(template_path + "/".join(item['path'].split('/')[1:]), "wb") as f:
+                f.write(file_r.content)
+
 
 def get_owner_name_branch(repo: str) -> Tuple[str, str, str]:
     """Gets the owner, repository name and branch from the repo name the user provided.
@@ -483,7 +569,7 @@ def init_new_project(
         return 1
     
     Template({
-        f"{fn}.py": """\
+        f"{fn}": """\
 #!/usr/bin/python
 
 from ayo import Template, true_or_false
@@ -499,7 +585,7 @@ Template({
 
         "ayo.config.json": """\
 {
-    "bin": "{fn}.py",
+    "bin": "{fn}",
     "with": [],
     "before-scripts": []
 }
@@ -521,7 +607,7 @@ def main():
 
         if (not args and "help" in kwargs) \
         or (args and args[0] == "help"):
-            exit(show_help())
+            exit(show_help(args[1] if args[1:] else None))
 
         if args[0].lower() in ['install', 'i']:
             exit(install_and_run(args[1:], kwargs))

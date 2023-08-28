@@ -114,3 +114,161 @@ To check the available commands, run:
 $ ayo --help
 ```
 
+## Reference
+
+### Template
+
+Represents an ayo script template.
+
+Args:
+
+- contents (`str` | dict[str, Any]): The contents. Could be a `str` representing the directory to use as a template or a directory dictionary.
+
+To use `contents` as `str`, you'll need a directory called `.ayo-templates`. You can define templates here. See the below file tree example:
+
+```
+.ayo-templates/
+├─ template-a/
+│  ├─ ... files & dirs
+│
+├─ template-b/
+│  ├─ ... files & dirs
+│
+├─ .../
+```
+
+To use the templates, simply use:
+
+```python
+from ayo import Template
+
+Template("template-a").install("app-directory")
+Template("template-b").install("app-directory")
+```
+
+In some occasions, you might want to ignore some files or directories from the template. To do so, pass in the `ignores` parameter:
+
+```python
+Template("template-a").install(
+    "app-directory",
+    ignores={
+        "unwanted-dir": ..., # use '...' here
+        ".gitignore": ...,
+        "venv": {
+            "bin": ...
+        }
+    }
+)
+```
+
+As the name implies, "directory dictionaries" are just plain old Python dictionaries that work like file trees. `ayo` supports them!
+
+```python
+from ayo import Template
+
+Template({
+    "main.py": "# very normal main.py",
+    "venv": {
+        "bin": {
+            "README.md": "hahaha! this is the file content!"
+        }
+    }
+}).install("app-directory")
+```
+
+Same as the above, you can ignore specific files and directories:
+
+```python
+Template({
+    "main.py": "# very normal main.py",
+    # ... existing code
+}).install("app-directory", {
+    "main.py": ..., # use '...' here
+    ".gitignore": ...,
+
+    "folders": {
+        "work": {
+            "too.txt": "WOW!"
+        }
+    }
+})
+```
+
+### Steps
+
+Represents steps.
+
+Args:
+
+- cache (`bool`, optional): Whether to cache (remember) data as completions or not, so that even if `KeyboardInterrupt` occurs, the next time when this script executes, we can get the previous data, and skip directly to the last step the user is on.
+
+I personally don't like reading, but code is what I skip to.
+
+Here's an example of the `Steps` class:
+
+```python
+from ayo import Steps
+
+steps = Steps()
+
+@steps.first # first step
+def hello_world():
+    print("Hello, World!")
+
+@steps.then # then...
+def ask_for_install(data):
+    # 'data': data returned from the previous function
+    # in this case, None!
+    return input("Can I install something for you?")
+
+@steps.then
+def write_or_exit(data: str):
+    # the 'data' is given from the 'input()'
+    if data.lower() != "yes":
+        exit(1)
+
+    Template({
+        "main.py": "# surprise! new app!",
+        "another-dir": {
+            "README.md": "More content!"
+        }
+    }).install("new-app")
+
+steps.start() # start!
+```
+
+Now, whenever the user tries to `^C` or exit the program, `ayo` remembers everything... NO CRIMES ALLOWED!
+
+If you're wondering how to remove the cache, simply run:
+
+```ps
+$ ayo clean-cache
+```
+
+### true\_or\_false (tof)
+
+Checks whether the input provided by the user (Yn) is true or not.
+
+This is useful for "parsing" (more like understanding) `Yn` user inputs.
+
+Args:
+
+- \_input (`str`): The input.
+- false_if_unknown (`bool`, optional): Whether to return `False` if received unrecognized input or not.
+
+```python
+from ayo import tof # sneaky shortcut
+
+a = "yes"
+print(tof(a)) # -> True
+
+b = "nope"
+print(tof(b)) # -> False
+
+c = "you'll never guess what i mean!!"
+
+print(tof(c)) # -> False
+print(tof(c, false_if_unknown=False)) # Error
+```
+
+Built by AWeirdScratcher (AWeirdDev). Right, I was bored.

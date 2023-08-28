@@ -1,3 +1,5 @@
+import random
+
 def bytes_to_readable(count) -> str:
     """Converts bytes to a human readable string.
     
@@ -36,3 +38,33 @@ def true_or_false(_input: str, *, false_if_unknown: bool = True) -> bool:
         raise ValueError(f"Unrecognized Yn choice: {_input!r}")
 
 tof = true_or_false # alias
+
+def random_fact() -> str:
+    """Generates a random fact (FOR AYO ONLY)."""
+    return random.choice([
+        "You can think of this as a fake pip",
+
+        "The disk of the Milky Way galaxy is about 100,000 light years in diameter"
+        " (one light year is about 9.5 x 1015 meters).",
+
+        "Calgary's elevation is approximately 1,048 m (3,438 ft) above sea level downtown, "
+        "and 1,084 m (3,557 ft) at the airport.",
+
+        "Dumbledore is an expert at Transfiguration too, having taught the subject before becoming headmaster.",
+
+        "I made ayo because I was bored, and found out woah, nobody has used this name before!",
+
+        "'ZIP' is actually an acronym for Zone Improvement Plan.",
+
+        "I've always wondered who asked since 2021!",
+
+        "Most Belgian waffle recipes are yeast-based, to get that crispy texture.",
+
+        "Bacon is actually red meat.",
+
+        "Earth is by far the most dynamic planet when seen from space.",
+
+        "When a cat rubs you, he is marking you with his scent, claiming you as \"his.\"",
+
+        "You cannot hear any sounds in near-empty regions of space."
+    ])

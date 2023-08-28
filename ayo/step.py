@@ -75,7 +75,7 @@ class Steps:
                 yn = console.input(f"  ✨ [blue]Restore to Q{len(self.data)}[/blue]? [Yn] ")
 
                 if not tof(yn):
-                    exit(0)
+                    self.data = []
 
     def first(self, function: Callable[..., TYPES]) -> None:
         """Registers the very first task. Acts as a decorator.

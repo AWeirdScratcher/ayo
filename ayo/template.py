@@ -14,7 +14,7 @@ class Template:
     r"""Represents an ayo script template.
     
     Args:
-        contents (dict of str: str | dict of str: str | ...): The contents.
+        contents (str | dict of str | Any): The contents.
 
     Example:
         .. code-block :: python
