@@ -1,0 +1,36 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "ayo"
+version = "0.1"
+description = "Run & Create Python 'create app' scripts with ease."
+keywords = ["ayo", "create-app", "create", "app", "cli"]
+authors = [
+  { name = "AWeirdDev", email = "aweirdscratcher@gmail.com" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3"
+dependencies = [
+  "rich",
+  "requests"
+]
+
+[project.scripts]
+ayo = "ayo.cli:main"
+
+[project.urls]
+"Homepage" = "https://github.com/AWeirdScratcher/ayo"
+"Bug Tracker" = "https://github.com/AWeirdScratcher/ayo/issues"
+
+[tool.setuptools]
+packages = [
+    "ayo"
+]
