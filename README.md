@@ -50,17 +50,18 @@ Then, take a look at `ayo-script.py`. You should see the default script:
 ```python
 #!/usr/bin/python
 
-print("Hello, World!")
-res = input("Can I install something for you?")
+from ayo import Template, true_or_false
 
-if res.lower() != "yes":
+yn = input("Can I install something for you?")
+if not true_or_false(yn):
     exit(1)
 
-with open("yay.txt", "w") as file:
-    file.write("create-python-app lore??")
+Template({
+    "main.py": "# surprise! new app!"
+}).install()
 ```
 
-Decent code! But let's twist it a little bit: let's edit it so we can try out the `Steps` feature!
+Decent code! But let's twist it a little bit: let's edit it so we can try out the `Steps` and `Template` feature!
 
 It goes something like this:
 
@@ -87,8 +88,12 @@ def write_or_exit(data: str):
     if data.lower() != "yes":
         exit(1)
 
-    with open("yay.txt", "w") as file:
-        file.write("create-python-app lore??")
+    Template({
+        "main.py": "# surprise! new app!",
+        "another-dir": {
+            "README.md": "More content!"
+        }
+    }).install("new-app")
 
 steps.start() # start!
 ```
@@ -100,3 +105,12 @@ Let's try out our freshly made script by running:
 ```ps
 $ ayo run
 ```
+
+## Available Commands
+
+To check the available commands, run:
+
+```ps
+$ ayo --help
+```
+

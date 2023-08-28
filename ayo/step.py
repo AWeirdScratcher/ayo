@@ -3,6 +3,9 @@ from typing import Any, Callable, List, Optional, Union
 
 from rich.console import Console
 
+from .utils import tof
+
+
 TYPES = Optional[Union[str, int, float, bool]]
 console = Console()
 
@@ -66,11 +69,14 @@ class Steps:
 
             if self.data:
                 console.print(
-                    f"✨ [blue]Restored to Q{len(self.data)}[/blue]",
-                    f"(you entered {self.data[-1]!r})",
+                    f"  [d](last data: {self.data[-1]!r})[/d]\n",
                     overflow="ellipsis"
                 )
-                
+                yn = console.input(f"  ✨ [blue]Restore to Q{len(self.data)}[/blue]? [Yn] ")
+
+                if not tof(yn):
+                    exit(0)
+
     def first(self, function: Callable[..., TYPES]) -> None:
         """Registers the very first task. Acts as a decorator.
         

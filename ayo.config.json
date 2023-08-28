@@ -1,3 +1,5 @@
 {
-    "bin": "ayo-script.py"
+    "bin": "ayo-script.py.py",
+    "with": [],
+    "before-scripts": []
 }

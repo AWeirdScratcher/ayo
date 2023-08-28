@@ -86,12 +86,15 @@ class Template:
             ignores (dict of str: str | dict of str: :obj:`Any`, optional): A directory dict representing which files 
                 and directories to exclude.
         """
-        if os.path.exists(project_name):
-            raise FileExistsError(f"Directory or file already exists: {project_name!r}")
+        root: str = project_name if project_name.endswith(("/", "\\")) else (project_name + "/")
+
+        if project_name != ".":
+            if os.path.exists(project_name):
+                raise FileExistsError(f"Directory or file already exists: {project_name!r}")
+            
+            os.mkdir(root)
 
         ignores = Template.convert_dict_to_list(ignores)
-        root: str = project_name if project_name.endswith(("/", "\\")) else (project_name + "/")
-        os.mkdir(root)
 
         with Progress(
             SpinnerColumn(),
