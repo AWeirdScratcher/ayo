@@ -1,9 +1,5 @@
-#!/usr/bin/python
+from ayo import self_remove
 
-from ayo import Template, tof
+input("imma self remove!!!! ")
 
-yn = input("Will install example template [Yn] ")
-if not tof(yn):
-    exit(1)
-
-Template("example-template").install("example-app")
+self_remove()

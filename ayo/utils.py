@@ -68,3 +68,7 @@ def random_fact() -> str:
 
         "You cannot hear any sounds in near-empty regions of space."
     ])
+
+def self_remove() -> None:
+    """Tells ayo to remove this script."""
+    exit(-77034)

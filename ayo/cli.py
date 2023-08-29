@@ -70,7 +70,13 @@ def show_help(target_command: Optional[str] = None) -> int:
         {
             "name": "help",
             "help": "Shows this message.",
-            "args": [],
+            "args": [
+                {
+                    "name": "command",
+                    "help": "(optional) The command to inspect or check info on.",
+                    "example": "install"
+                }
+            ],
             "kwargs": []
         },
         {
@@ -120,6 +126,7 @@ def show_help(target_command: Optional[str] = None) -> int:
         {
             "name": "uninstall",
             "help": "Uninstall multiple scripts at once.",
+            "aliases": ["remove"],
             "args": [
                 {
                     "name": "scripts",
@@ -176,7 +183,7 @@ def show_help(target_command: Optional[str] = None) -> int:
 
         if aliases:
             _aliases_string = ", ".join(aliases)
-            contents += f"{inner}[yellow]aliases:[/yellow] {_aliases_string}\n"
+            contents += f"{inner}[yellow]aliases:[/yellow] {_aliases_string}\n\n"
 
         if args:
             contents += f"{inner}positional args:\n\n"
@@ -449,14 +456,73 @@ def run_script(path: str):
                 console.print(f"  > {colored(cmd)}\n")
                 os.system(cmd)
     
-    cmd = "python " + path + config['bin']
-    console.print(f">  {colored(cmd)}")
-    console.print()
-    result: int = os.system(cmd)
+    console.print(f"  > {colored(f'cd {path}')}")
+    os.chdir(path)
 
-    if result != 0:
-        console.print("\n[red]execution failed: [/red] non-zero")
+    cmd = "python " + config['bin']
+    console.print(f"  > {colored(cmd)}")
+    console.print()
+    try:
+        result: int = os.system(cmd)
+    except KeyboardInterrupt:
+        console.print("\n[red]keyboard interrupt[/red]")
+        result: int = -1
+
+    cd_back_cmd = "cd " + ("../" * path.count('/'))
+    
+    if path[:-1] != ".":
+        console.print()
+        console.print(f"  > {colored(cd_back_cmd)}\n")
+        os.chdir(cd_back_cmd[len('cd '):])
+
+    if result == 0:
+        console.print("\n[green]run completed[/green]")
         return 0
+
+    elif result == -77034:
+        if ".ayo-scripts/" not in path:
+            console.print(
+                "\n  🔴 This script would like to [red]self-remove[/red].\n"
+                "  However, due to this is not [blue]GitHub-downloaded[/blue], "
+                "I [red]cannot perform this action.[/red]\n"
+            )
+            return 1
+
+        yn = console.input(
+            "  🔴 This script would like to [red]self-remove[/red].\n"
+            f"  Contents under [blue]{path}[/blue] will be removed.\n\n"
+            "  Continue? [Yn] "
+        )
+        if tof(yn):
+            print(remove_script(path))
+        
+        return 0
+        
+    else:
+        console.print("\n[red]execution failed: [/red] non-zero")
+        return 1
+
+def remove_script(
+    inferred_path: str,
+    *,
+    quiet: bool = False
+) -> bool:
+    """Removes a script completely.
+    
+    Args:
+        inferred_path (str): The inferred script path.
+        quiet (bool, optional): Whether to turn off console logs for this session.
+    """
+    if os.path.exists(inferred_path):
+        if not quiet:
+            console.print(
+                f"[red]removing {inferred_path} (and everything under it)[/red]"
+            )
+
+        shutil.rmtree(inferred_path)
+        return True
+    
+    return False
 
 def update_scripts(
     args: List[POSSIBLE_TYPES],
@@ -470,13 +536,9 @@ def update_scripts(
     for repo in args:
         owner, name, branch = get_owner_name_branch(repo)
         inferred_path = f".ayo-scripts/{owner}~{name}~{branch}"
-
-        if os.path.exists(inferred_path):
-            console.print(
-                f"[red]removing {inferred_path} (and everything under it)[/red]"
-            )
-            shutil.rmtree(inferred_path)
-
+        result = remove_script(inferred_path)
+        
+        if result:
             console.print(f"updating [blue]{repo}[/blue]")
             base_url, config = gh_get_ayo_config(owner, name, branch)
             gh_download_script_from_config(base_url, config)
@@ -541,7 +603,11 @@ def raw_run(
             inferred_path = f".ayo-scripts/{owner}~{name}~{branch}"
 
             if not os.path.exists(inferred_path):
-                console.print(f"[red]directory does not exist: {inferred_path}[/red]")
+                console.print(f"\n  [red]directory does not exist: {inferred_path}[/red]")
+                console.print(
+                    "  [d white]pro tip: "
+                    f"use [b blue]ayo i {repo}[/b blue] to install[/d white]\n"
+                )
                 return 1
             
             run_script(inferred_path + "/")
@@ -615,7 +681,7 @@ def main():
         elif args[0].lower() == 'update':
             exit(update_scripts(args[1:], kwargs))
 
-        elif args[0].lower() == 'uninstall':
+        elif args[0].lower() == ['uninstall', 'remove']:
             exit(uninstall_scripts(args[1:], kwargs))
 
         elif args[0].lower() == 'run':
