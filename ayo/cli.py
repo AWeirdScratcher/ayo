@@ -671,7 +671,7 @@ Template({
     "before-scripts": []
 }
 """.replace('{fn}', fn)
-    }).install("", __sys_argv="./")
+    }).install("", sys_argv="./")
 
     return 0
 
