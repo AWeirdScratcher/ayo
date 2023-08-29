@@ -573,7 +573,7 @@ def uninstall_scripts(
             yn = console.input("[red]are you sure?[/red] I have a family! [Yn] ")
 
             if not tof(yn):
-                exit(1)
+                return 1
 
             with console.status(f"[red]uninstalling {repo!r}...[/red]"):
                 shutil.rmtree(inferred_path)
@@ -581,7 +581,7 @@ def uninstall_scripts(
             console.print(f"[green]uninstalled {repo!r}[/green]")
         else:
             console.print(f"cannot uninstall {repo!r}: does not exist")
-            exit(1)
+            return 1
 
     console.print("finished.")
     return 0
@@ -617,7 +617,7 @@ def raw_run(
             console.print(f"[red]directory does not exist: {repo}[/red]")
             return 1
         
-        return run_script(repo + ("" if repo.endswith(("/", "\\")) else "/"))
+        run_script(repo + ("" if repo.endswith(("/", "\\")) else "/"))
 
 def init_new_project(
     args: List[POSSIBLE_TYPES],
