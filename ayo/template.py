@@ -1,4 +1,5 @@
 import os
+import sys
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
@@ -86,7 +87,9 @@ class Template:
             ignores (dict of str: str | dict of str: :obj:`Any`, optional): A directory dict representing which files 
                 and directories to exclude.
         """
-        root: str = project_name if project_name.endswith(("/", "\\")) else (project_name + "/")
+        root: str = sys.argv[1] + (
+            project_name if project_name.endswith(("/", "\\")) else (project_name + "/")
+        )
 
         if project_name != ".":
             if os.path.exists(project_name):

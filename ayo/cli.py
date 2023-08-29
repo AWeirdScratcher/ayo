@@ -459,16 +459,17 @@ def run_script(path: str):
     console.print(f"  > {colored(f'cd {path}')}")
     os.chdir(path)
 
-    cmd = "python " + config['bin']
+    cd_back_cmd = "cd " + ("../" * path.count('/'))
+
+    cmd = "python " + config['bin'] + f' "{cd_back_cmd if path[:-1] != "." else "./"}"'
     console.print(f"  > {colored(cmd)}")
     console.print()
+
     try:
         result: int = os.system(cmd)
     except KeyboardInterrupt:
         console.print("\n[red]keyboard interrupt[/red]")
         result: int = -1
-
-    cd_back_cmd = "cd " + ("../" * path.count('/'))
     
     if path[:-1] != ".":
         console.print()
@@ -494,7 +495,7 @@ def run_script(path: str):
             "  Continue? [Yn] "
         )
         if tof(yn):
-            print(remove_script(path))
+            remove_script(path)
         
         return 0
         
@@ -513,6 +514,16 @@ def remove_script(
         inferred_path (str): The inferred script path.
         quiet (bool, optional): Whether to turn off console logs for this session.
     """
+    if not inferred_path.startswith(".ayo-scripts/"):
+        yn = console.input(
+            "This is not a verified source for ayo scripts.\n"
+            f"If you continue, I'll remove {inferred_path} and everything under it.\n"
+            "Continue? [Yn]"
+        )
+
+        if not tof(yn):
+            return False
+
     if os.path.exists(inferred_path):
         if not quiet:
             console.print(
@@ -566,6 +577,10 @@ def uninstall_scripts(
         return 0
 
     for repo in args:
+        if not repo.startswith("@"):
+            console.print(f"[red]{repo!r} is not a github repo.[/red]")
+            return 1
+
         owner, name, branch = get_owner_name_branch(repo)
         inferred_path = f".ayo-scripts/{owner}~{name}~{branch}"
 
@@ -681,7 +696,7 @@ def main():
         elif args[0].lower() == 'update':
             exit(update_scripts(args[1:], kwargs))
 
-        elif args[0].lower() == ['uninstall', 'remove']:
+        elif args[0].lower() in ['uninstall', 'remove']:
             exit(uninstall_scripts(args[1:], kwargs))
 
         elif args[0].lower() == 'run':
