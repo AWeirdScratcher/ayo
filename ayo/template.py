@@ -78,7 +78,8 @@ class Template:
         self, 
         project_name: str, 
         *, 
-        ignores: Dict[str, Any] = {}
+        ignores: Dict[str, Any] = {},
+        __sys_argv: Optional[str] = None
     ):
         """Installs contents for the user from this template.
         
@@ -87,7 +88,7 @@ class Template:
             ignores (dict of str: str | dict of str: :obj:`Any`, optional): A directory dict representing which files 
                 and directories to exclude.
         """
-        root: str = sys.argv[1] + (
+        root: str = (__sys_argv or sys.argv[1]) + (
             project_name if project_name.endswith(("/", "\\")) else (project_name + "/")
         )
 
