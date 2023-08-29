@@ -1,5 +1,7 @@
 {
     "bin": "ayo-script.py",
     "with": [],
-    "before-scripts": []
+    "before-scripts": [
+        "echo You are running the demo content. This does not do anything at all."
+    ]
 }
