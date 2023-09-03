@@ -9,7 +9,7 @@ accepts = string.ascii_letters + string.digits + "-_~[]"
 
 console = Console()
 
-if os.path.exists("ayo.config.json"):
+if os.path.exists("./ayo.config.json"):
     console.print(
         "[red]ayo.config.json already exists[/red]"
     )
@@ -26,7 +26,7 @@ if any(i not in accepts for i in name):
     )
     exit(1)
 
-if os.path.exists(name + ".py"):
+if os.path.exists("./" + name + ".py"):
     console.print(
         "[red]already exists[/red]"
     )
