@@ -1,0 +1,8 @@
+.ayo-scripts/
+.breakpoints
+.pythonlibs/
+.replit
+replit.nix
+poetry.lock
+pyproject.toml
+**/__pycache__/
